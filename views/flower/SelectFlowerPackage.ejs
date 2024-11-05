@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Image Gallery</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/canvas.css" rel="stylesheet"/>
+    <style>
+        #thumbnailContainer {
+            position: absolute;
+            right: -200px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 170px;
+            height: 600px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column align-items-center justify-content-center">
+<div class="container">
+    <div id="canvasContainer" class="col-12">
+        <canvas id="canvas" src="<%= images[0] %>"></canvas>
+
+        <div id="thumbnailContainer">
+            <div id="thumbnails" class="d-flex flex-wrap">
+                <% images.forEach((image, index) => { %>
+                    <div>
+                        <img src="<%= image %>" alt="Image <%= index + 1 %>" onclick="showLargeImage(this)">
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-6 text-right">
+            <button id="uploadBtn" class="btn btn-primary">이미지 업로드</button>
+        </div>
+        <div class="col-6 text-left">
+            <button id="redirectToPageBtn" class="btn btn-success" onclick="redirectToPage()">다음 페이지로</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.querySelector("#canvas");
+    const ctx = canvas.getContext("2d");
+
+    const img = new Image();
+
+    function showLargeImage(element) {
+        img.src = element.src;
+        console.log("이미지 로드");
+
+        img.onload = () => {
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+
+            const imgWidth = img.width;
+            const imgHeight = img.height;
+
+            const scale = Math.min(canvasWidth / imgWidth, canvasHeight / imgHeight);
+            const x = (canvasWidth - imgWidth * scale) / 2;
+            const y = (canvasHeight - imgHeight * scale) / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, x, y, imgWidth * scale, imgHeight * scale);
+        };
+    }
+
+    function resizeCanvas() {
+        const container = document.querySelector("#canvasContainer");
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function redirectToPage() {
+        const imageUrl = img.src;
+        const formData = new FormData();
+        formData.append('image', imageUrl);
+
+        fetch('/flower/decorate', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/flower/decorate';
+                } else {
+                    console.error('File upload failed');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+</body>
+</html>
