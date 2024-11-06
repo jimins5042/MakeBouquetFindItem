@@ -85,23 +85,25 @@
     resizeCanvas();
 
     function redirectToPage() {
-        const imageUrl = img.src;
-        const formData = new FormData();
-        formData.append('image', imageUrl);
+    const imageUrl = img.src;
 
-        fetch('/flower/decorate', {
-            method: 'POST',
-            body: formData
+    fetch('/drawFlower/decorate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image: imageUrl }),
+    })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/drawFlower/decorate';
+            } else {
+                console.error('File upload failed');
+            }
         })
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = '/flower/decorate';
-                } else {
-                    console.error('File upload failed');
-                }
-            })
-            .catch(error => console.error('Error:', error));
-    }
+        .catch(error => console.error('Error:', error));
+}
+
 </script>
 </body>
 </html>
