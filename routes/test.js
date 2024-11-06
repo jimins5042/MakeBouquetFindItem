@@ -12,10 +12,9 @@ router.get('/test', function (req, res) {
 });
 
 router.get('/', function (req, res) {
-    // 쿼리 문자열에서 'name' 파라미터를 받아오기
-    const name = req.query.name;
     
-    // EJS 템플릿에 'name'을 전달하여 렌더링
+    //const name = req.query.name;
+    
     res.render('flower/FlowerCanvas'); // .ejs 확장자는 생략
 });
 
