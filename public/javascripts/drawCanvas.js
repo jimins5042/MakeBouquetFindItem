@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const button = document.querySelector(`.${color}`);
         button.style.background = (color === "clear" || color === "fill") ? "rgba(100,100,100,0.2)" : color;
         button.onclick = () => {
+
+            isDrawing = true;
+            isAddingImage = false;
+
             ctx.strokeStyle = color;
             lineColor = color;
 
