@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Image Upload Preview</title>
+    <style>
+        .hide {
+            display: none;
+        }
+
+        .show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 이미지 업로드 폼 -->
+    <form action="/test/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" id="image-file">
+        <button type="submit">Upload</button>
+    </form>
+
+    <!-- 이미지 미리 보기 영역 -->
+    <img id="preview" src="<%= imageUrl %>" alt="Preview" class="<%= imageUrl ? 'show' : 'hide' %>">
+
+    <script>
+        // 이미지 업로드 후 미리보기 설정
+        document.addEventListener('DOMContentLoaded', () => {
+            const previewImage = document.getElementById('preview');
+            if (previewImage.src) {
+                previewImage.classList.add('show'); // 미리보기 이미지 표시
+            } else {
+                previewImage.classList.add('hide'); // 미리보기 이미지 숨기기
+            }
+        });
+
+        // 이미지 업로드 처리 함수
+        async function uploadImage() {
+            const fileInput = document.getElementById('image-file'); // id 수정
+            if (fileInput.files.length === 0) {
+                alert('Please select a file to upload.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            const response = await fetch('/test/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const previewImage = document.getElementById('preview');
+                previewImage.src = data.img_url; // 서버에서 받은 이미지 URL을 사용
+                previewImage.classList.add('show'); // 미리보기 표시
+            } else {
+                alert('Image upload failed');
+            }
+        }
+
+        // 업로드 버튼에 클릭 이벤트 리스너 추가
+        const uploadButton = document.querySelector('button[type="submit"]');
+        uploadButton.addEventListener('click', (event) => {
+            event.preventDefault(); // 기본 폼 제출 동작 방지
+            uploadImage(); // 이미지 업로드 함수 호출
+        });
+    </script>
+</body>
+
+</html>

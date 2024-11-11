@@ -5,15 +5,15 @@ const ejs = require('ejs');
 const fs = require('fs');
 const path = require('path');
 const port = 8000;
-const fileUpload = require("express-fileupload");
 
 
 app.set('views', path.join(__dirname, 'views')); // views 폴더 경로 설정
 app.set('view engine', 'ejs'); // EJS를 기본 템플릿 엔진으로 설정
 app.use('/public', express.static('public'));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(fileUpload());  // express-fileupload 미들웨어
+
 //app.use('/route', require('./routes/test'))
 
 // routes 폴더의 모든 파일을 읽어와서 등록
