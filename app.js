@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 //app.use('/route', require('./routes/test'))
 
-// routes 폴더의 모든 파일을 읽어와서 등록
+// routes 폴더의 모든 파일을 읽어와서 등록 과연
 fs.readdirSync(path.join(__dirname, 'routes')).forEach((file) => {
     const route = require(`./routes/${file}`);
     const routePath = `/${file.replace('.js', '')}`; // 파일 이름을 경로로 사용
