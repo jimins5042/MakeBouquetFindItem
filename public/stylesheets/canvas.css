@@ -103,3 +103,56 @@ canvas {
     box-shadow: 0 0 10px rgb(255, 255, 255) !important;
 
 }
+
+/*====== rgb 슬라이더 관련 ======*/
+#rgbSliders {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+}
+
+.slider-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+#rgbSliders label {
+    margin-right: 10px;
+    color: black;
+    font-size: 14px;
+    text-align: center;
+    width: 50px;
+    white-space: nowrap;
+}
+
+#rgbSliders input[type="range"] {
+    width: 100px;
+    /* 슬라이더의 고정된 길이 */
+}
+
+#rgbSliders span {
+    color: black;
+    margin-left: 20px;
+    width: 40px;
+    /* 값의 너비를 고정 */
+    text-align: center;
+    /* 값의 중앙 정렬 */
+}
+
+/* .value 클래스의 span에 추가 스타일 */
+#rgbSliders .value {
+    font-size: 14px;
+    margin-left: 5px;
+    /* 슬라이더와 값 사이의 간격 */
+    width: 40px;
+    /* 고정된 너비 */
+    text-align: center;
+    /* 값의 중앙 정렬 */
+}

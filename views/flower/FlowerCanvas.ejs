@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>그림 그리기</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/public/stylesheets/canvas.css" rel="stylesheet"/>
+    <link href="/public/stylesheets/canvas.css" rel="stylesheet" />
     <style>
         /* Custom styles */
     </style>
@@ -14,201 +15,260 @@
 
 <body class="d-flex flex-column align-items-center justify-content-center">
 
-<div class="container">
-    <div id="canvasContainer" class="col-12">
-        <canvas id="canvas"></canvas>
-        <div id="palette" class="d-flex flex-wrap justify-content-center">
-            <span class="red">red</span>
-            <span class="orange">orange</span>
-            <span class="yellow">yellow</span>
-            <span class="green">green</span>
-            <span class="blue">blue</span>
-            <span class="navy">navy</span>
-            <span class="purple">purple</span>
-            <span class="black">black</span>
-            <span class="white">white</span>
-            <span class="clear">clear</span>
-            <span class="fill">fill</span>
-            <span class="undo">실행취소</span>
-            <span class="redo">복구</span>
+    <div class="container">
+        <div id="canvasContainer" class="col-12">
+            <canvas id="canvas"></canvas>
+            <div id="palette" class="d-flex flex-wrap justify-content-center">
+
+                <span class="freecolor">Free</span>
+                <span class="red">red</span>
+                <span class="orange">orange</span>
+                <span class="yellow">yellow</span>
+                <span class="green">green</span>
+                <span class="blue">blue</span>
+                <span class="navy">navy</span>
+                <span class="purple">purple</span>
+                <span class="black">black</span>
+                <span class="white">white</span>
+                <span class="clear">clear</span>
+
+                <span class="fill">fill</span>
+                <span class="undo">취소</span>
+                <span class="redo">복구</span>
+            </div>
+            <div id="lineWidthSlider">
+                <input type="range" min="1" max="20" value="3" class="slider">
+                <p> Size: <span id="sliderValue">3</span> px </p>
+            </div>
+            <div id="thumbnailContainer">
+                <div id="thumbnails"></div>
+                <button id="saveBtn" class="btn btn-warning" style="margin-top: 10px">Save Drawing</button>
+            </div>
         </div>
-        <div id="lineWidthSlider">
-            <input type="range" min="1" max="20" value="3" class="slider">
-            <p> Size: <span id="sliderValue">3</span> px </p>
+
+        <div class="row mt-3">
+            <div class="col-6 text-right">
+                <button id="downloadBtn" class="btn btn-primary">Download Image</button>
+            </div>
+            <div class="col-6 text-left">
+                <button id="uploadBtn" class="btn btn-success">다음 페이지로 넘어가기</button>
+            </div>
+
         </div>
-        <div id="thumbnailContainer">
-            <div id="thumbnails"></div>
-            <button id="saveBtn" class="btn btn-warning" style="margin-top: 10px">Save Drawing</button>
+        <div id="rgbSliders">
+
+            <h5>색상 변경 슬라이더</h5>
+
+            <div class="slider-container" style="margin-top: 5px;">
+                <label for="rSlider">Red:</label>
+                <input type="range" id="rSlider" min="0" max="255" value="0">
+                <span class="value" id="rValue">0</span> <!-- .value 클래스를 span에 적용 -->
+            </div>
+
+            <div class="slider-container">
+                <label for="gSlider">Green:</label>
+                <input type="range" id="gSlider" min="0" max="255" value="0">
+                <span class="value" id="gValue">0</span> <!-- .value 클래스를 span에 적용 -->
+            </div>
+
+            <div class="slider-container">
+                <label for="bSlider">Blue:</label>
+                <input type="range" id="bSlider" min="0" max="255" value="0">
+                <span class="value" id="bValue">0</span> <!-- .value 클래스를 span에 적용 -->
+            </div>
+
         </div>
     </div>
 
-    <div class="row mt-3">
-        <div class="col-6 text-right">
-            <button id="downloadBtn" class="btn btn-primary">Download Image</button>
-        </div>
-        <div class="col-6 text-left">
-            <button id="uploadBtn" class="btn btn-success">다음 페이지로 넘어가기</button>
-        </div>
-        
-    </div>
-</div>
+    <script src="/public/javascripts/drawCanvas.js"></script>
 
-<script src="/public/javascripts/drawCanvas.js"></script>
+    <script>
+        let painting = false;
 
-<script>
-    let painting = false;
+        // 실행 취소/복구 기능
+        let undoStack = [];
+        let redoStack = [];
 
-    // 실행 취소/복구 기능
-    let undoStack = [];
-    let redoStack = [];
+        let isDrawing = true; // 기본적으로 선 그리기 활성화
+        let isAddingImage = false; // 이미지 삽입 비활성화
+        let isSave = 0; //그림의 저장 여부 판단
 
-    let isDrawing = true; // 기본적으로 선 그리기 활성화
-    let isAddingImage = false; // 이미지 삽입 비활성화
-    let isSave = 0; //그림의 저장 여부 판단
+        const canvas = document.querySelector("#canvas");
+        const ctx = canvas.getContext("2d");
 
-    const canvas = document.querySelector("#canvas");
-    const ctx = canvas.getContext("2d");
-
-    function resizeCanvas() {
-        const container = document.querySelector("#canvasContainer");
-        canvas.width = container.offsetWidth;
-        canvas.height = container.offsetHeight;
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    // === 파일 관리 ===
-
-    function downloadImage() {
-        const image = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.href = image;
-        link.download = 'canvas-image.png';
-        link.click();
-    }
-
-    const downloadBtn = document.getElementById('downloadBtn');
-    downloadBtn.addEventListener('click', downloadImage);
-
-    function sendImageToServer() {
-        if (beforeMoveToNextPage()) {
-            window.location.href = '/drawFlower/selectPackage';
-        } else {
-            alert("저장된 이미지가 없습니다!");
+        function resizeCanvas() {
+            const container = document.querySelector("#canvasContainer");
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
         }
-    }
 
-    const uploadBtn = document.getElementById('uploadBtn');
-    uploadBtn.addEventListener('click', sendImageToServer);
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-    // === 이미지 슬롯에 저장 ===
-    const storageKeys = ["savedImage1", "savedImage2", "savedImage3"];
-    let currentPage = 0;
+        // === 파일 관리 ===
 
-    function initializationSave() {
-        for (let i = 0; i < storageKeys.length; i++) {
-            if (localStorage.getItem(storageKeys[i])) {
-                localStorage.removeItem(storageKeys[i]);
+        function downloadImage() {
+            const image = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = image;
+            link.download = 'canvas-image.png';
+            link.click();
+        }
+
+        const downloadBtn = document.getElementById('downloadBtn');
+        downloadBtn.addEventListener('click', downloadImage);
+
+        function sendImageToServer() {
+            if (beforeMoveToNextPage()) {
+                window.location.href = '/drawFlower/selectPackage';
+            } else {
+                alert("저장된 이미지가 없습니다!");
             }
         }
-    }
 
-    function saveDrawing() {
-        const dataURL = canvas.toDataURL();
-        localStorage.setItem(storageKeys[currentPage], dataURL);
-        undoStack = [];
-        redoStack = [];
-        alert(`Slot ${currentPage + 1}에 그림이 저장되었습니다.`);
-        updatePreviews();
-    }
+        const uploadBtn = document.getElementById('uploadBtn');
+        uploadBtn.addEventListener('click', sendImageToServer);
 
-    function loadDrawing(slotIndex) {
-        if (undoStack.length != 0 || redoStack.length != 0) {
-            let checkBeforeLoad = confirm("그림이 저장되지 않았습니다. 그림을 저장할까요?");
-            if (checkBeforeLoad) saveDrawing();
+        // === 이미지 슬롯에 저장 ===
+        const storageKeys = ["savedImage1", "savedImage2", "savedImage3"];
+        let currentPage = 0;
+
+        function initializationSave() {
+            for (let i = 0; i < storageKeys.length; i++) {
+                if (localStorage.getItem(storageKeys[i])) {
+                    localStorage.removeItem(storageKeys[i]);
+                }
+            }
         }
 
-        currentPage = slotIndex;
-        const dataURL = localStorage.getItem(storageKeys[slotIndex]);
-        if (dataURL) {
-            const img = new Image();
-            img.src = dataURL;
-            img.onload = () => {
+        function saveDrawing() {
+            const dataURL = canvas.toDataURL();
+            localStorage.setItem(storageKeys[currentPage], dataURL);
+            undoStack = [];
+            redoStack = [];
+            alert(`Slot ${currentPage + 1}에 그림이 저장되었습니다.`);
+            updatePreviews();
+        }
+
+        function loadDrawing(slotIndex) {
+            if (undoStack.length != 0 || redoStack.length != 0) {
+                let checkBeforeLoad = confirm("그림이 저장되지 않았습니다. 그림을 저장할까요?");
+                if (checkBeforeLoad) saveDrawing();
+            }
+
+            currentPage = slotIndex;
+            const dataURL = localStorage.getItem(storageKeys[slotIndex]);
+            if (dataURL) {
+                const img = new Image();
+                img.src = dataURL;
+                img.onload = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    updateHighlight();
+                };
+            } else {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0);
                 updateHighlight();
-            };
-        } else {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        document.getElementById('saveBtn').addEventListener('click', saveDrawing);
+
+        window.addEventListener('load', () => {
+            initializationSave();
+            updatePreviews();
+        });
+
+        function updatePreviews() {
+            const thumbnailContainer = document.getElementById('thumbnails');
+            thumbnailContainer.innerHTML = '';
+
+            for (let i = 0; i < storageKeys.length; i++) {
+                const imageData = localStorage.getItem(storageKeys[i]);
+                const imgSrc = imageData || getEmptyImageDataURL();
+                displayThumbnail(imgSrc, i);
+            }
             updateHighlight();
         }
-    }
 
-    document.getElementById('saveBtn').addEventListener('click', saveDrawing);
-
-    window.addEventListener('load', () => {
-        initializationSave();
-        updatePreviews();
-    });
-
-    function updatePreviews() {
-        const thumbnailContainer = document.getElementById('thumbnails');
-        thumbnailContainer.innerHTML = '';
-
-        for (let i = 0; i < storageKeys.length; i++) {
-            const imageData = localStorage.getItem(storageKeys[i]);
-            const imgSrc = imageData || getEmptyImageDataURL();
-            displayThumbnail(imgSrc, i);
+        function getEmptyImageDataURL() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 150;
+            canvas.height = 150;
+            ctx.fillStyle = '#ffffff00';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/png');
         }
-        updateHighlight();
-    }
 
-    function getEmptyImageDataURL() {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 150;
-        canvas.height = 150;
-        ctx.fillStyle = '#ffffff00';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        return canvas.toDataURL('image/png');
-    }
+        function displayThumbnail(imageData, slotIndex) {
+            const thumbnailContainer = document.getElementById('thumbnails');
+            const imgElement = document.createElement('img');
+            imgElement.src = imageData;
+            imgElement.dataset.slot = slotIndex;
 
-    function displayThumbnail(imageData, slotIndex) {
-        const thumbnailContainer = document.getElementById('thumbnails');
-        const imgElement = document.createElement('img');
-        imgElement.src = imageData;
-        imgElement.dataset.slot = slotIndex;
-
-        imgElement.addEventListener('click', () => loadDrawing(slotIndex));
-        thumbnailContainer.appendChild(imgElement);
-    }
-
-    function updateHighlight() {
-        const thumbnails = document.querySelectorAll('#thumbnails img');
-        thumbnails.forEach(thumbnail => thumbnail.classList.remove('thumbnail-highlight'));
-        if (currentPage >= 0 && currentPage < thumbnails.length) {
-            thumbnails[currentPage].classList.add('thumbnail-highlight');
+            imgElement.addEventListener('click', () => loadDrawing(slotIndex));
+            thumbnailContainer.appendChild(imgElement);
         }
-    }
 
-    function beforeMoveToNextPage() {
-        const emptySlots = storageKeys.filter(key => !localStorage.getItem(key)).length;
-        if (emptySlots === storageKeys.length && undoStack.length === 0) {
-            return false;
-        } else if (emptySlots === storageKeys.length && undoStack.length > 0) {
-            const saveConfirm = confirm("그림이 저장되지 않았습니다. 그림을 저장할까요?");
-            if (saveConfirm) {
-                saveDrawing();
-                return true;
-            } else {
-                return false;
+        function updateHighlight() {
+            const thumbnails = document.querySelectorAll('#thumbnails img');
+            thumbnails.forEach(thumbnail => thumbnail.classList.remove('thumbnail-highlight'));
+            if (currentPage >= 0 && currentPage < thumbnails.length) {
+                thumbnails[currentPage].classList.add('thumbnail-highlight');
             }
         }
-        return true;
-    }
-</script>
+
+        function beforeMoveToNextPage() {
+            const emptySlots = storageKeys.filter(key => !localStorage.getItem(key)).length;
+            if (emptySlots === storageKeys.length && undoStack.length === 0) {
+                return false;
+            } else if (emptySlots === storageKeys.length && undoStack.length > 0) {
+                const saveConfirm = confirm("그림이 저장되지 않았습니다. 그림을 저장할까요?");
+                if (saveConfirm) {
+                    saveDrawing();
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+
+        const freeColorBtn = document.querySelector('.freecolor');
+        const rgbSliders = document.getElementById('rgbSliders');
+
+        freeColorBtn.addEventListener('click', function () {
+            if (rgbSliders.style.display === 'none' || rgbSliders.style.display === '') {
+                rgbSliders.style.display = 'block'; // 보이게 설정
+            } else {
+                rgbSliders.style.display = 'none'; // 숨기게 설정
+            }
+        });
+
+        // 페이지 로드 시 RGB 슬라이더 숨기기
+        window.addEventListener('load', () => {
+            rgbSliders.style.display = 'none'; // 처음에는 숨겨놓기
+        });
+
+
+        // 슬라이더 값이 바뀔 때마다 라벨의 값을 업데이트
+        document.querySelectorAll('#rSlider, #gSlider, #bSlider').forEach(slider => {
+            slider.addEventListener('input', function () {
+                const valueSpan = this.nextElementSibling; // value를 표시하는 span 요소
+                valueSpan.textContent = this.value;
+            });
+        });
+
+        // 초기 값 설정
+        document.querySelectorAll('#rSlider, #gSlider, #bSlider').forEach(slider => {
+            const valueSpan = slider.nextElementSibling; // value를 표시하는 span 요소
+            valueSpan.textContent = slider.value;
+        });
+    </script>
 
 
 </body>
+
 </html>

@@ -12,33 +12,174 @@
         .show {
             display: block;
         }
+
+        .color-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        #canvasContainer {
+            position: relative;
+            width: 600px;
+            /* 고정된 가로 길이 */
+            height: 600px;
+            /* 고정된 세로 길이 */
+            margin: 20px auto;
+            /* 가로 중앙 정렬 */
+            top: calc(0%);
+            /* 슬라이더 위치를 조정 */
+        }
+
+        canvas {
+            position: absolute;
+            /* 캔버스를 겹치도록 설정 */
+            top: 0;
+            left: 0;
+            width: 100%;
+            /* 부모 컨테이너에 맞춤 */
+            height: 100%;
+            /* 부모 컨테이너에 맞춤 */
+            border: 3px double;
+            cursor: pointer;
+        }
     </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
 </head>
 
 <body>
+
+
+    <div id="canvasContainer" class="col-12">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <!-- 숨겨진 파일 입력 요소 -->
+    <input type="file" id="fileInput" accept="image/*" style="display:none" />
+
     <!-- 이미지 업로드 폼 -->
     <form action="/test/upload" method="POST" enctype="multipart/form-data">
         <input type="file" name="image" id="image-file">
         <button type="submit">Upload</button>
     </form>
 
+
+
     <!-- 이미지 미리 보기 영역 -->
     <img id="preview" src="<%= imageUrl %>" alt="Preview" class="<%= imageUrl ? 'show' : 'hide' %>">
 
+    <!-- 색상 표시 동그라미 -->
+    <div id="color-display"></div>
+    <br>
+    <br>
+    <div id="color-displays"></div>
+
     <script>
+        const canvas = document.querySelector("#canvas");
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        const colorThief = new ColorThief();
+
+        //===== canvas 로직 시작==========
+        let fileUpload = function () {
+            document.getElementById("fileInput").click();
+        };
+
+        canvas.addEventListener("click", fileUpload);
+
+
+        // 파일이 선택되면 이미지로 로드하고 canvas에 그리기
+        document.getElementById("fileInput").addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        drawImageOnCanvas(img);
+
+                        const colors = colorThief.getColor(img);
+                        const hexColor = rgbToHex(colors);
+
+                        // 동그라미 색상 표시
+                        const colorDisplay = document.getElementById('color-display');
+                        colorDisplay.innerHTML = ''; // 이전 색상 초기화
+                        const colorCircle = document.createElement('div');
+                        colorCircle.className = 'color-circle';
+                        colorCircle.style.backgroundColor = hexColor;
+                        colorDisplay.appendChild(colorCircle);
+
+                        const palette = colorThief.getPalette(img, 5); // 5가지 색상 추출
+
+                        // 기존 동그라미 초기화 및 새 동그라미 추가
+                        const colorDisplay1 = document.getElementById('color-displays');
+                        colorDisplay1.innerHTML = ''; // 이전 동그라미 초기화
+                        palette.forEach(color => {
+                            const hexColor = rgbToHex(color);
+                            const colorCircle = document.createElement('div');
+                            colorCircle.className = 'color-circle';
+                            colorCircle.style.backgroundColor = hexColor;
+                            colorDisplay1.appendChild(colorCircle);
+                        });
+
+
+
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function drawImageOnCanvas(image) {
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+
+            const imgWidth = image.width;
+            const imgHeight = image.height;
+
+            const scale = Math.min(canvasWidth / imgWidth, canvasHeight / imgHeight);
+            const x = (canvasWidth - imgWidth * scale) / 2;
+            const y = (canvasHeight - imgHeight * scale) / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, x, y, imgWidth * scale, imgHeight * scale);
+        }
+
+        function resizeCanvas() {
+            const container = document.querySelector("#canvasContainer");
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        //===== canvas 로직 끝==========
+
         // 이미지 업로드 후 미리보기 설정
         document.addEventListener('DOMContentLoaded', () => {
             const previewImage = document.getElementById('preview');
             if (previewImage.src) {
-                previewImage.classList.add('show'); // 미리보기 이미지 표시
+                previewImage.classList.add('show');
             } else {
-                previewImage.classList.add('hide'); // 미리보기 이미지 숨기기
+                previewImage.classList.add('hide');
             }
         });
 
+        // RGB를 헥스 코드로 변환하는 함수
+        function rgbToHex(rgbArray) {
+            return "#" + rgbArray.map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? "0" + hex : hex;
+            }).join('');
+        }
+
         // 이미지 업로드 처리 함수
         async function uploadImage() {
-            const fileInput = document.getElementById('image-file'); // id 수정
+            const fileInput = document.getElementById('image-file');
             if (fileInput.files.length === 0) {
                 alert('Please select a file to upload.');
                 return;
@@ -56,7 +197,35 @@
                 const data = await response.json();
                 const previewImage = document.getElementById('preview');
                 previewImage.src = data.img_url; // 서버에서 받은 이미지 URL을 사용
-                previewImage.classList.add('show'); // 미리보기 표시
+                previewImage.classList.add('show');
+
+                // 이미지 로드가 완료된 후 색상 추출
+                previewImage.onload = () => {
+                    const colors = colorThief.getColor(previewImage);
+                    const hexColor = rgbToHex(colors);
+
+                    // 동그라미 색상 표시
+                    const colorDisplay = document.getElementById('color-display');
+                    colorDisplay.innerHTML = ''; // 이전 색상 초기화
+                    const colorCircle = document.createElement('div');
+                    colorCircle.className = 'color-circle';
+                    colorCircle.style.backgroundColor = hexColor;
+                    colorDisplay.appendChild(colorCircle);
+
+                    const palette = colorThief.getPalette(previewImage, 5); // 5가지 색상 추출
+
+                    // 기존 동그라미 초기화 및 새 동그라미 추가
+                    const colorDisplay1 = document.getElementById('color-displays');
+                    colorDisplay1.innerHTML = ''; // 이전 동그라미 초기화
+                    palette.forEach(color => {
+                        const hexColor = rgbToHex(color);
+                        const colorCircle = document.createElement('div');
+                        colorCircle.className = 'color-circle';
+                        colorCircle.style.backgroundColor = hexColor;
+                        colorDisplay1.appendChild(colorCircle);
+                    });
+                };
+
             } else {
                 alert('Image upload failed');
             }
