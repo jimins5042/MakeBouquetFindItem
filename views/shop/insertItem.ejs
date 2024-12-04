@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include('../fragments/header') %>
+
+    <body>
+        <div class="container mt-5">
+
+            <%- include('../fragments/bodyHeader') %>
+
+                <h1>상품 등록</h1>
+                <form action="/shop/addItem" method="POST" enctype="multipart/form-data">
+                    <!-- 상품 제목 -->
+                    <div class="form-group">
+                        <label for="item_title">상품명</label>
+                        <input type="text" name="item_title" id="item_title" class="form-control"
+                            placeholder="상품명을 입력하세요" required>
+                    </div>
+                    <br />
+                    <!-- 상품 내용 -->
+                    <div class="form-group">
+                        <label for="item_content">상품 설명</label>
+                        <textarea name="item_content" id="item_content" rows="5" class="form-control"
+                            placeholder="상품 설명을 입력하세요"></textarea>
+                    </div>
+                    <br />
+                    <!-- 상품 가격 -->
+                    <div class="form-group">
+                        <label for="item_price">상품 가격</label>
+                        <input type="number" name="item_price" id="item_price" class="form-control"
+                            placeholder="가격을 입력하세요 (예: 1000)" step="0.01" min="0">
+                    </div>
+                    <br />
+                    <!-- 이미지 업로드 -->
+                    <div class="form-group">
+                        <label for="item_image_link">상품 이미지</label>
+                        <input type="file" name="item_image_link" id="item_image_link" class="form-control-file"
+                            accept="image/*">
+                    </div>
+
+                    <!-- 숨겨진 입력 필드 -->
+                    <input type="hidden" name="palette" id="palette">
+
+                    <!-- 제출 버튼 -->
+                    <button type="submit" class="btn btn-primary mt-3">등록</button>
+                </form>
+
+                <br>
+                <br>
+                <%- include('../fragments/footer') %>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+        <script>
+            const img = new Image();
+            const colorThief = new ColorThief();
+
+            function rgbToHex(rgbArray) {
+                return "#" + rgbArray.map(x => {
+                    const hex = x.toString(16);
+                    return hex.length === 1 ? "0" + hex : hex;
+                }).join('');
+            }
+
+            // 파일이 선택되면 이미지로 로드하고 canvas에 그리기
+            document.getElementById("item_image_link").addEventListener("change", (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        img.src = e.target.result;
+                        img.onload = () => {
+                            const palette = colorThief.getPalette(img, 5); // 5가지 색상 추출
+                            //const hexColors = palette.map(color => rgbToHex(color)); // 색상들을 HEX로 변환
+
+                            // 숨겨진 입력 필드에 색상 데이터를 저장
+                            //document.getElementById("palette").value = JSON.stringify(hexColors);
+                            document.getElementById("palette").value = JSON.stringify(palette);
+                            console.log("추출된 색상:", palette);
+                        };
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        </script>
+    </body>
+
+</html>

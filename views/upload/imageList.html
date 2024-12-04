@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:text-align="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <link href="../css/bootstrap.min.css"
+          th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container" style="max-width: 600px">
+    <div class="py-5 text-center">
+        <h2>상품 목록</h2>
+    </div>
+    <div class="row">
+        <div class="col">
+            <button class="btn btn-primary float-end"
+                    onclick="location.href='addForm.html'"
+                    th:onclick="|location.href='@{/spring/upload}'|"
+
+                    type="button">이미지 업로드
+            </button>
+
+            <button class="btn btn-primary float-end"
+                    onclick="location.href='addForm.html'"
+                    th:onclick="|location.href='@{/spring/draw}'|"
+
+                    type="button">그림 그리기
+            </button>
+        </div>
+    </div>
+
+    <hr class="my-4">
+    <div>
+        <table class="table" style="margin: 0 auto;">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>이미지 주소</th>
+                <th>이미지 이름</th>
+                <th>저장한 날짜</th>
+                <th>이미지 삭제</th>
+
+            </tr>
+            </thead>
+
+            <tbody style="text-align: center;">
+
+            <tr th:each="item : ${items}">
+
+                <td>
+                    <a href="showImage.html"
+                       th:href="@{/spring/imageList/{id}(id=${item.id})}"
+                       th:text="${item.id}">id
+
+                    </a>
+                </td>
+
+
+                <td><a href="showImage.html" th:href="@{/spring/imageList/{id}(id=${item.id})}"
+                       th:text="${item.imageUuid}">테스트 상품1</a></td>
+                <td th:text="${item.imageName}">10000</td>
+                <td th:text="${item.imageDate}">10</td>
+                <td><a href="showImage.html" th:href="@{/spring/imageList/delete/{id}(id=${item.id})}"
+                       text="이미지 삭제">이미지 삭제</a></td>
+
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+</div> <!-- /container -->
+</body>
+</html>

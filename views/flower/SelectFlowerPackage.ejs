@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Gallery</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/public/stylesheets/canvas.css" rel="stylesheet"/>
+    <style>
+        #thumbnailContainer {
+            position: absolute;
+            right: -200px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 170px;
+            height: 600px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column align-items-center justify-content-center">
+<div class="container">
+    <div id="canvasContainer" class="col-12">
+        <canvas id="canvas"></canvas>
+
+        <!-- 이미지 선택 후 미리보기를 위한 썸네일 컨테이너 -->
+        <div id="thumbnailContainer">
+            <div id="thumbnails" class="d-flex flex-wrap">
+                <% images.forEach((image, index) => { %>
+                    <div>
+                        <img src="<%= image %>" alt="Image <%= index + 1 %>" onclick="showLargeImage(this)">
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-6 text-right">
+            <button id="uploadBtn" class="btn btn-primary" onclick="fileUpload()">이미지 업로드</button>
+        </div>
+        <div class="col-6 text-left">
+            <button id="redirectToPageBtn" class="btn btn-success" onclick="redirectToPage()">다음 페이지로</button>
+        </div>
+    </div>
+
+    <!-- 숨겨진 파일 입력 요소 -->
+    <input type="file" id="fileInput" accept="image/*" style="display:none" />
+
+</div>
+
+<script>
+    const canvas = document.querySelector("#canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    // canvas를 클릭하면 파일 입력 대화상자 열기
+
+    let fileUpload = function () {
+    document.getElementById("fileInput").click();
+};
+
+    canvas.addEventListener("click", fileUpload);
+
+  
+    // 파일이 선택되면 이미지로 로드하고 canvas에 그리기
+    document.getElementById("fileInput").addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                img.src = e.target.result;
+                img.onload = () => {
+                    drawImageOnCanvas(img);
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function drawImageOnCanvas(image) {
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+
+        const imgWidth = image.width;
+        const imgHeight = image.height;
+
+        const scale = Math.min(canvasWidth / imgWidth, canvasHeight / imgHeight);
+        const x = (canvasWidth - imgWidth * scale) / 2;
+        const y = (canvasHeight - imgHeight * scale) / 2;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, x, y, imgWidth * scale, imgHeight * scale);
+    }
+
+    function resizeCanvas() {
+        const container = document.querySelector("#canvasContainer");
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    
+
+    function redirectToPage() {
+        const imageUrl = img.src;
+
+        fetch('/drawFlower/decorate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ image: imageUrl }),
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/drawFlower/decorate';
+                } else {
+                    console.error('File upload failed');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // 썸네일 클릭 시 해당 이미지를 canvas에 표시
+    function showLargeImage(element) {
+        img.src = element.src;
+        img.onload = () => {
+            drawImageOnCanvas(img);
+        };
+    }
+</script>
+</body>
+</html>

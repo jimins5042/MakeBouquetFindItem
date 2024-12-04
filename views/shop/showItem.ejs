@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<%- include('../fragments/header') %>
+
+    <body>
+        <%- include('../fragments/bodyHeader') %>
+
+            <div class="container" style="margin-top: 100px; margin-bottom: 100px;">
+
+
+                <div class="row" style="display: flex; align-items: center; ">
+                    <div class="col-md-6">
+                        <!-- 이미지를 화면 왼쪽에 배치 -->
+                        <div class="product-image">
+                            <% if (item.image_url) { %>
+                                <img src="<%= item.image_url %>" alt="<%= item.item_title %>" loading="lazy" class="img-fluid"
+                                    style="max-width: 400px;">
+                                <% } else { %>
+                                    <p>이미지가 없습니다.</p>
+                                    <% } %>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="product-info">
+                            <h3>
+                                <%= item.item_title %>
+                            </h3>
+
+                            <p><b>내용:</b>
+                                <%= item.item_content %>
+                            </p>
+
+                            <p><b>상품 코드 : </b><span class="badge bg-danger">
+                                    <%= item.item_id %>
+                                </span></p>
+
+                            <p><b>작성 날짜: </b>
+                                <%= item.item_date ? item.item_date.toISOString().split('T')[0] : '' %>
+                            </p>
+
+                            <p><b>해시 코드: </b>
+                                <%= item.image_hash_code ? `${item.image_hash_code}` : '없음' %>
+                            </p>
+
+                            <p><b>제조사</b> : <span> 전북 전주시 전북대학교</span></p>
+
+                            <h4><span>
+                                    <%= item.item_price ? `₩${item.item_price}` : '무료' %>
+                                </span>원</h4>
+                            <br>
+
+                            <p>
+                                <a href="#" class="btn btn-info">상품 주문 &raquo;</a>
+                                <a href="/" class="btn btn-secondary">주문취소 &raquo;</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <br>
+                <%- include('../fragments/footer') %>
+            </div>
+
+            <div class="col-6 text-left">
+                <button id="uploadBtn" class="btn btn-success">상품 리스트로 이동</button>
+            </div>
+
+            <script>
+                const uploadBtn = document.getElementById('uploadBtn');
+                uploadBtn.addEventListener('click', sendImageToServer);
+
+                function sendImageToServer() {
+                    window.location.href = '/shop/itemList';
+                }
+            </script>
+
+    </body>
+
+</html>

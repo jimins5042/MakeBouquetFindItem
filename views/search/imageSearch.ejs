@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include('../fragments/header') %>
+
+    <style>
+        .hide {
+            display: none;
+        }
+
+        .show {
+            display: block;
+        }
+
+        #colorContainer {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .color-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        #hashcode,
+        #nearestColor {
+            margin: 5px 0;
+            text-align: center;
+        }
+
+        .content-wrapper {
+            display: flex;
+            justify-content: flex-start;
+            /* 캔버스를 왼쪽으로 */
+            align-items: flex-start;
+            gap: 40px;
+        }
+
+        #canvasWrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 400px;
+        }
+
+        #canvasContainer {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border: 3px double;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+
+
+        .button-container {
+            text-align: center;
+        }
+
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            /* 한 열당 3개 배치 */
+            gap: 20px;
+            /* 카드 간 간격 */
+            justify-content: center;
+            /* 그리드 가운데 정렬 */
+        }
+
+        .card {
+            width: 250px;
+            /* 카드 가로 크기 */
+            height: 400px;
+            /* 카드 세로 크기 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            /* 내용 넘칠 경우 잘리도록 설정 */
+            text-align: center;
+        }
+
+        .card img {
+            width: 100%;
+            /* 카드의 가로에 맞게 */
+            height: 100%;
+            /* 카드의 세로에 맞게 */
+            object-fit: contain;
+            /* 이미지 비율 유지하며 카드 안에 맞춤 */
+        }
+
+
+        .card-body {
+            padding: 10px;
+            height: 30%;
+            /* 카드 높이의 30% 사용 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+
+    <body>
+
+        <%- include('../fragments/header') %>
+            <!-- Navigation -->
+            <%- include('../fragments/bodyHeader') %>
+                <section class="py-5" style="margin-top: -100px;">
+                    <div class="container px-4 px-lg-5 mt-5">
+                        <div class="py-5 text-center">
+                            <h2>이미지 검색 머신</h2>
+                            <h6>나만의 상품을 찾아보세요</h6>
+                        </div>
+
+                        
+                        <div class="content-wrapper">
+                            <!-- Canvas Section -->
+                            <div id="canvasWrapper">
+                                <div id="canvasContainer">
+                                    <canvas id="canvas"></canvas>
+                                </div>
+                                <div class="button-container">
+                                    <form action="/search/upload" method="POST" enctype="multipart/form-data">
+                                        <label for="fileInput" class="btn btn-primary">파일 선택</label>
+                                        <input type="file" id="fileInput" accept="image/*" style="display:none"
+                                            onchange="enableCalHashButton()" />
+                                        <button type="submit" id="showHashBtn" class="btn btn-danger"
+                                            disabled>calHash</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Product List Section -->
+
+                            <!-- 제품 목록 -->
+                            <div class="product-list" id="productList"></div>
+
+                        </div>
+
+                        <!-- 색상 정보 -->
+                        <div id="colorContainer">
+                            <div id="mainColor-display"></div>
+                            <div id="color-display"></div>
+                            <h1 id="hashcode"></h1>
+                            <h1 id="nearestColor"></h1>
+                        </div>
+
+                        <!-- More button -->
+                        <div class="text-sm-end">
+                            <a class="btn btn-outline-dark mt-auto" href="/list">더보기</a>
+                        </div>
+                </section>
+
+                <!-- Footer -->
+                <footer class="py-5 bg-dark">
+                    <div class="container">
+                        <p class="m-0 text-center text-white">Copyright &copy; Your Website 2023</p>
+                    </div>
+                </footer>
+
+                <script>
+                    const canvas = document.querySelector("#canvas");
+                    const ctx = canvas.getContext("2d");
+                    const img = new Image();
+                    const colorThief = new ColorThief();
+
+                    // 파일 선택 시 해시 버튼 활성화
+                    function enableCalHashButton() {
+                        const showHashBtn = document.getElementById("showHashBtn");
+                        showHashBtn.disabled = false;
+                    }
+
+                    // 다음 페이지로 이동
+                    function redirectToPage() {
+                        window.location.href = "/next-page";
+                    }
+
+
+                    //===== canvas 로직 시작==========
+                    let fileUpload = function () {
+                        document.getElementById("fileInput").click();
+                    };
+
+                    canvas.addEventListener("click", fileUpload);
+
+
+                    // 파일이 선택되면 이미지로 로드하고 canvas에 그리기
+                    document.getElementById("fileInput").addEventListener("change", (event) => {
+                        const file = event.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function (e) {
+                                img.src = e.target.result;
+                                img.onload = () => {
+                                    drawImageOnCanvas(img);
+                                    const mainColor = colorThief.getColor(img); // 메인 색상 출력
+                                    const colorDisplay = document.getElementById('mainColor-display');
+                                    colorDisplay.innerHTML = ''; // 이전 동그라미 초기화
+
+                                    const hexColor = rgbToHex(mainColor);
+                                    const colorCircle = document.createElement('div');
+                                    colorCircle.className = 'color-circle';
+                                    colorCircle.style.backgroundColor = hexColor;
+                                    colorDisplay.appendChild(colorCircle);
+
+
+
+
+                                    const palette = colorThief.getPalette(img, 5); // 5가지 색상 추출
+
+                                    console.log("파레트 1", palette[0]);
+
+                                    // 기존 동그라미 초기화 및 새 동그라미 추가
+                                    const colorDisplay1 = document.getElementById('color-display');
+                                    colorDisplay1.innerHTML = ''; // 이전 동그라미 초기화
+                                    palette.forEach(color => {
+                                        const hexColor = rgbToHex(color);
+                                        const colorCircle = document.createElement('div');
+                                        colorCircle.className = 'color-circle';
+                                        colorCircle.style.backgroundColor = hexColor; // 동그라미 색상 표시
+                                        colorDisplay1.appendChild(colorCircle);
+                                    });
+
+
+
+                                };
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+
+                    function drawImageOnCanvas(image) {
+                        const canvasWidth = canvas.width;
+                        const canvasHeight = canvas.height;
+
+                        const imgWidth = image.width;
+                        const imgHeight = image.height;
+
+                        const scale = Math.min(canvasWidth / imgWidth, canvasHeight / imgHeight);
+                        const x = (canvasWidth - imgWidth * scale) / 2;
+                        const y = (canvasHeight - imgHeight * scale) / 2;
+
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(image, x, y, imgWidth * scale, imgHeight * scale);
+                    }
+
+                    function resizeCanvas() {
+                        const container = document.querySelector("#canvasContainer");
+                        canvas.width = container.clientWidth;
+                        canvas.height = container.clientHeight;
+                    }
+
+                    window.addEventListener('resize', resizeCanvas);
+                    resizeCanvas();
+
+                    // 이미지 업로드 처리 함수
+                    async function showHash() {
+
+
+                        let fileInput = document.getElementById('fileInput');
+
+                        if (fileInput.files.length === 0) {
+
+                            alert('Please select a file to upload.');
+                            return;
+                        }
+
+                        const rgbColor = colorThief.getColor(img);
+
+                        const formData = new FormData();
+                        formData.append('image', fileInput.files[0]);
+                        formData.append('rgb', JSON.stringify(rgbColor));
+
+                        const response = await fetch('/search/upload', {
+                            method: 'POST',
+                            body: formData,
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            const previewImage = document.getElementById('preview');
+                            document.getElementById('hashcode').textContent = data.hashValue;
+                            document.getElementById('nearestColor').textContent = data.nearestColor;
+
+                            // 서버에서 받은 items로 제품 목록을 동적으로 생성
+                            // 서버에서 받은 items로 제품 목록을 동적으로 생성
+                            const productList = document.getElementById("productList");
+                            productList.classList.remove("hide"); // 숨겨진 제품 목록을 보이게 함
+
+                            // 기존 목록 비우기
+                            productList.innerHTML = '';
+
+                            // 서버에서 받은 items 배열을 사용하여 제품 목록 생성
+                            data.items.forEach(item => {
+                                const productDiv = document.createElement('div');
+                                productDiv.classList.add('card'); // 카드 스타일 유지
+
+                                // 동적으로 상품 카드 HTML 생성
+                                productDiv.innerHTML = `
+        <a href="/shop/items/${item.item_id}">
+            <img class="card-img-top" src="${item.image_url}" alt="${item.item_title}" loading="lazy">
+        </a>
+        <div class="card-body">
+            <div class="text-center">
+                <h5 class="fw-bolder">${item.item_title}</h5>
+                <span>${item.item_price} 원</span>
+                <span>유사도 : ${item.similarity}</span>
+            </div>
+        </div>
+    `;
+                                productList.appendChild(productDiv); // productList에 카드 추가
+                            });
+
+
+                        } else {
+                            alert('Image upload failed');
+                        }
+                    }
+
+                    // RGB를 헥스 코드로 변환하는 함수
+                    function rgbToHex(rgbArray) {
+
+                        console.log(rgbArray);
+                        return "#" + rgbArray.map(x => {
+                            const hex = x.toString(16);
+                            return hex.length === 1 ? "0" + hex : hex;
+                        }).join('');
+                    }
+
+                    //===== canvas 로직 끝==========
+
+                    // 이미지 업로드 후 미리보기 설정
+
+                    // 해시 버튼에 클릭 이벤트 리스너 추가
+                    const showHashButton = document.getElementById('showHashBtn');
+                    showHashButton.addEventListener('click', (event) => {
+                        event.preventDefault(); // 기본 폼 제출 동작 방지
+                        showHash(); // 해시 코드 표시 함수 호출
+                    });
+
+
+                </script>
+    </body>
+
+</html>

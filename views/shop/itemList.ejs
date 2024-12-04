@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include('../fragments/header') %>
+
+<style>
+    /* 마우스를 올렸을 때의 스타일 */
+    tr:hover {
+        background-color: #f1f1f1;
+        cursor: pointer;
+    }
+
+    /* 테이블 아래에 버튼을 고정 */
+    .container {
+        position: relative;
+    }
+</style>
+
+<body>
+    <div class="container">
+        <%- include('../fragments/bodyHeader') %>
+        <div>
+            <button id="uploadBtn" class="btn btn-success mb-2" style="float: right;">글 작성 페이지 이동</button>
+
+            <!-- 테이블 부분 -->
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>상품명</th>
+                        <th>작성날짜</th>
+                        <th>가격</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- items 배열을 반복하여 데이터를 표시 -->
+                    <% items.forEach(item => { %>
+                        <tr onclick="window.location.href='/shop/items/<%= item.item_id %>'">
+                            <td><%= item.item_id %></td>
+                            <td><%= item.item_title %></td>
+                            <td><%= item.item_date ? item.item_date.toISOString().split('T')[0] : '' %></td>
+                            <td><%= item.item_price %></td>
+                            <td>
+                                <a href="/shop/items/<%= item.item_id %>/edit" class="btn btn-primary" role="button">수정</a>
+                                <a href="/shop/items/<%= item.item_id %>/delete" class="btn btn-secondary" role="button">삭제</a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-center mt-4">
+            <nav>
+                <ul class="pagination">
+                    <!-- 이전 그룹 버튼 -->
+                    <% if (pageGroup > 1) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= (pageGroup - 1) * 10 %>">&laquo;</a>
+                        </li>
+                    <% } else { %>
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    <% } %>
+
+                    <!-- 페이지 번호 -->
+                    <% for (let i = startPage; i <= Math.min(endPage, totalPages); i++) { %>
+                        <li class="page-item <%= page === i ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                        </li>
+                    <% } %>
+
+                    <!-- 다음 그룹 버튼 -->
+                    <% if (endPage < totalPages) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= (pageGroup + 1) * 10 - 9 %>">&raquo;</a>
+                        </li>
+                    <% } else { %>
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                    <% } %>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- 검색 폼 -->
+        <div>
+            <form action="#" method="get" class="form-inline">
+                <div class="form-group mb-2">
+                    <input type="text" name="name" class="form-control" placeholder="상품명" />
+                </div>
+                <button type="submit" class="btn btn-primary mb-2">검색</button>
+            </form>
+        </div>
+
+        <br>
+        <%- include('../fragments/footer') %>
+    </div> <!-- /container -->
+
+</body>
+
+<script>
+    const uploadBtn = document.getElementById('uploadBtn');
+    uploadBtn.addEventListener('click', sendImageToServer);
+
+    function sendImageToServer() {
+        window.location.href = '/shop/addItem';
+    }
+</script>
+
+</html>

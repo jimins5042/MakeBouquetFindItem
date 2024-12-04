@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>그림 그리기</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/public/stylesheets/canvas.css" rel="stylesheet" />
+    <style>
+        #sizeSlider input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        #sizeSlider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        #thumbnailContainer {
+            position: absolute;
+            right: -190px;
+            top: 50%;
+            transform: translateY(-45%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 150px;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column align-items-center justify-content-center">
+
+    <div class="container">
+        <div id="canvasContainer" class="col-12">
+            <canvas id="imageCanvas"></canvas>
+            <canvas id="canvas"></canvas>
+
+            <div id="palette" class="d-flex flex-wrap justify-content-center">
+                <!-- 기존 팔레트 코드 유지 -->
+                <span class="freecolor">Free</span>
+                <span class="red">red</span>
+                <span class="orange">orange</span>
+                <span class="yellow">yellow</span>
+                <span class="green">green</span>
+                <span class="blue">blue</span>
+                <span class="navy">navy</span>
+                <span class="purple">purple</span>
+                <span class="black">black</span>
+                <span class="white">white</span>
+                <span class="clear">clear</span>
+
+                <!--span class="fill">fill</span-->
+                <span class="undo">취소</span>
+                <span class="redo">복구</span>
+                <span class="drawBtn">선 긋기</span>
+
+
+            </div>
+
+
+            <div id="lineWidthSlider">
+                <input type="range" min="1" max="20" value="3" class="slider">
+                <p> Size: <span id="sliderValue">3</span> px </p>
+            </div>
+
+            <div id="thumbnailContainer">
+                <!-- 여기서 섬네일 이미지들이 보여질 예정 -->
+                <div id="thumbnails"></div>
+                <input id="sizeSlider" type="range" min="50" max="300" value="200">
+                <p> Size: <span id="imgSliderValue">200</span> px </p>
+            </div>
+        </div>
+
+
+        <div class="d-flex justify-content-center">
+            <button id="downloadBtn" class="btn btn-primary mx-2">Download Image</button>
+            <button id="uploadBtn" class="btn btn-success mx-2">다음 페이지로 넘어가기</button>
+            <button id="img2imgBtn" class="btn btn-secondary mx-2">img2img btn</button>
+
+        </div>
+
+        <div id="rgbSliders">
+            <h5>색상 변경 슬라이더</h5>
+
+            <div class="slider-container" style="margin-top: 5px;">
+                <label for="rSlider">Red:</label>
+                <input type="range" id="rSlider" min="0" max="255" value="0">
+                <span class="value" id="rValue">0</span> <!-- .value 클래스를 span에 적용 -->
+            </div>
+
+            <div class="slider-container">
+                <label for="gSlider">Green:</label>
+                <input type="range" id="gSlider" min="0" max="255" value="0">
+                <span class="value" id="gValue">0</span> <!-- .value 클래스를 span에 적용 -->
+            </div>
+
+            <div class="slider-container">
+                <label for="bSlider">Blue:</label>
+                <input type="range" id="bSlider" min="0" max="255" value="0">
+                <span class="value" id="bValue">0</span> <!-- .value 클래스를 span에 적용 -->
+            </div>
+
+        </div>
+
+
+    </div>
+
+    <script src="/public/javascripts/canvasLogic.js"></script>
+    <script src="/public/javascripts/drawCanvas.js"></script>
+
+    <script>
+        let myValue = "<%= backgroundImage %>";
+        let painting = false;
+
+        // 실행 취소/복구 기능
+        let undoStack = [];
+        let redoStack = [];
+
+        let isDrawing = true; // 기본적으로 선 그리기 활성화
+        let isAddingImage = false; // 이미지 삽입 비활성화
+        let isSave = 0; //그림의 저장 여부 판단
+
+        const canvas = document.querySelector("#canvas");
+        const ctx = canvas.getContext("2d");
+
+
+        const freeColorBtn = document.querySelector('.freecolor');
+        const rgbSliders = document.getElementById('rgbSliders');
+
+        freeColorBtn.addEventListener('click', function () {
+            if (rgbSliders.style.display === 'none' || rgbSliders.style.display === '') {
+                rgbSliders.style.display = 'block'; // 보이게 설정
+            } else {
+                rgbSliders.style.display = 'none'; // 숨기게 설정
+            }
+        });
+
+        // 페이지 로드 시 RGB 슬라이더 숨기기
+        window.addEventListener('load', () => {
+            rgbSliders.style.display = 'none'; // 처음에는 숨겨놓기
+        });
+
+
+        // 슬라이더 값이 바뀔 때마다 라벨의 값을 업데이트
+        document.querySelectorAll('#rSlider, #gSlider, #bSlider').forEach(slider => {
+            slider.addEventListener('input', function () {
+                const valueSpan = this.nextElementSibling; // value를 표시하는 span 요소
+                valueSpan.textContent = this.value;
+            });
+        });
+
+        // 초기 값 설정
+        document.querySelectorAll('#rSlider, #gSlider, #bSlider').forEach(slider => {
+            const valueSpan = slider.nextElementSibling; // value를 표시하는 span 요소
+            valueSpan.textContent = slider.value;
+        });
+
+
+    </script>
+
+
+</body>
+
+</html>

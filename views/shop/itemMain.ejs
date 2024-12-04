@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include('../fragments/header') %>
+
+    <body>
+        <!-- Navigation -->
+        <%- include('../fragments/bodyHeader') %>
+
+            <!-- Section -->
+            <section class="py-5" style="margin-top: -100px;">
+                <div class="container px-4 px-lg-5 mt-5">
+                    <div class="py-5 text-center">
+                        <h2>계절을 가까이</h2>
+                        <h6>꽃으로 계절을 곁에서 느껴보세요</h6>
+                    </div>
+                    <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+                        <!-- EJS loop for products -->
+                        <% items.forEach(item=> { %>
+                            <div class="col mb-5">
+                                <div class="card h-100">
+                                    <!-- Product image -->
+                                    <a href="/shop/items/<%= item.item_id %>">
+                                        <% if (item.image_url) { %>
+                                            <img class="card-img-top" src="<%= item.image_url %>"
+                                                alt="<%= item.item_title %>" loading="lazy" class="img-fluid"
+                                                style="max-width: 400px;">
+                                            <% } else { %>
+                                                <p>이미지가 없습니다.</p>
+                                                <% } %>
+                                    </a>
+                                    <!-- Product details -->
+                                    <div class="card-body p-4">
+                                        <div class="text-center">
+                                            <!-- Product name -->
+                                            <h5 class="fw-bolder">
+                                                <%= item.item_title %>
+                                            </h5>
+                                            <!-- Product price -->
+                                            <span>
+                                                <%= item.item_price %> 원
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <% }); %>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-center mt-4">
+                        <nav>
+                            <ul class="pagination">
+                                <!-- 이전 그룹 버튼 -->
+                                <% if (pageGroup> 1) { %>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=<%= (pageGroup - 1) * 10 %>">&laquo;</a>
+                                    </li>
+                                    <% } else { %>
+                                        <li class="page-item disabled">
+                                            <span class="page-link">&laquo;</span>
+                                        </li>
+                                        <% } %>
+
+                                            <!-- 페이지 번호 -->
+                                            <% for (let i=startPage; i <=Math.min(endPage, totalPages); i++) { %>
+                                                <li class="page-item <%= page === i ? 'active' : '' %>">
+                                                    <a class="page-link" href="?page=<%= i %>">
+                                                        <%= i %>
+                                                    </a>
+                                                </li>
+                                                <% } %>
+
+                                                    <!-- 다음 그룹 버튼 -->
+                                                    <% if (endPage < totalPages) { %>
+                                                        <li class="page-item">
+                                                            <a class="page-link"
+                                                                href="?page=<%= (pageGroup + 1) * 10 - 9 %>">&raquo;</a>
+                                                        </li>
+                                                        <% } else { %>
+                                                            <li class="page-item disabled">
+                                                                <span class="page-link">&raquo;</span>
+                                                            </li>
+                                                            <% } %>
+                            </ul>
+                        </nav>
+                    </div>
+
+
+                    <!-- More button -->
+                    <div class="text-sm-end">
+                        <a class="btn btn-outline-dark mt-auto" href="/list">더보기</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="py-5 bg-dark">
+                <div class="container">
+                    <p class="m-0 text-center text-white">Copyright &copy; Your Website 2023</p>
+                </div>
+            </footer>
+    </body>
+
+</html>
