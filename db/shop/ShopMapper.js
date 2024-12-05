@@ -224,6 +224,31 @@ module.exports = {
         });
     },
 
+    selectHashValueV1() {
+
+        return new Promise((resolve, reject) => {
+            db.query(
+
+
+                `SELECT 
+                    s.item_id, s.item_title, s.item_price, i.image_url, i.image_phash_v1 as image_hash_code
+                FROM 
+                    shop_board as s
+                LEFT JOIN 
+                    image_info AS i
+                ON 
+                    s.item_image_link = i.image_uuid
+                where 
+                    s.item_image_link is not null
+                `, (err, results) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(results); // 쿼리 결과를 resolve로 전달
+            });
+        });
+    },
+
     updatePhash(hash, url) {
         return new Promise((resolve, reject) => {
             let sql =
