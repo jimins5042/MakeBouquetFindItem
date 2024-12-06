@@ -78,7 +78,7 @@ module.exports = {
             const sortedMap = [...map.entries()].sort((a, b) => b[1].similarity - a[1].similarity);
 
             // 상위 8개의 항목만 가져오기
-            let sort_items = sortedMap.slice(0, 8).map(entry => entry[0]); // entry[0]은 item 객체
+            let sort_items = sortedMap.slice(0, 10).map(entry => entry[0]); // entry[0]은 item 객체
             //console.log("values 기준으로 정렬된 Map:", sort_items);
 
             // 각 이미지를 비동기적으로 병렬 처리
@@ -163,7 +163,6 @@ module.exports = {
             // 모든 이미지를 병렬로 처리
             const processedItems = await Promise.all(sortPromises);
 
-
             console.log("검색 시간 : ", new Date() - start);
 
             res.json({ img_url, hashValue, nearestColor, items: processedItems, time :  new Date() - start});
@@ -231,7 +230,7 @@ module.exports = {
             const sortedMap = [...map.entries()].sort((a, b) => b[1].similarity - a[1].similarity);
 
             // 상위 8개의 항목만 가져오기
-            let sort_items = sortedMap.slice(0, 8).map(entry => entry[0]); // entry[0]은 item 객체
+            let sort_items = sortedMap.slice(0, 10).map(entry => entry[0]); // entry[0]은 item 객체
             //console.log("values 기준으로 정렬된 Map:", sort_items);
 
             // 각 이미지를 비동기적으로 병렬 처리

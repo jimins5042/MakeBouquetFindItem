@@ -39,7 +39,7 @@ module.exports = {
     },
 
     // LSH 검색
-    async searchLSH(hashValue) {
+    async searchLSHv1(hashValue) {
         const results = [];
         for (let i = 0; i < numBuckets; i++) {
             const bucketKey = crypto.createHash('md5').update(`${i}_${hashValue}`).digest('hex').substring(0, 8);
@@ -62,8 +62,59 @@ module.exports = {
                 hammingDistance: 3             // 입력된 해시 값과의 Hamming Distance
             }
         */
-        return candidates.sort((a, b) => a.hammingDistance - b.hammingDistance).slice(0, 10);
+        return candidates.sort((a, b) => a.hammingDistance - b.hammingDistance).slice(0, 30);
     },
+
+    // LSH 검색 2.0 - Set 자료형을 이용하여 탐색값에서 중복 제거
+    async searchLSHv2(hashValue) {
+        let resultsMap = new Map();
+        for (let i = 0; i < numBuckets; i++) {
+            const bucketKey = crypto.createHash('md5').update(`${i}_${hashValue}`).digest('hex').substring(0, 8);
+            if (lshBuckets.has(bucketKey)) {
+
+                                lshBuckets.get(bucketKey).forEach(item => {
+                                    if (!resultsMap.has(item.itemId)) {
+                                        resultsMap.set(item.itemId, item);
+                                    }
+                                });
+            }
+        }
+        const uniqueResults = Array.from(resultsMap.values());
+
+        // Hamming Distance 계산
+        const candidates = uniqueResults.map(item => ({
+            ...item,
+            hammingDistance: calculateHammingDistance(item.hashValue, hashValue)
+        }));
+
+        // 거리 기준으로 정렬 후 상위 10개 반환
+        //return candidates.sort((a, b) => a.hammingDistance - b.hammingDistance).slice(0, 10);
+        return candidates.sort((a, b) => a.hammingDistance - b.hammingDistance);
+    },
+    async searchLSH(hashValue, maxDistance = 1000) {
+        const resultsMap = new Map(); // 중복 제거를 위한 Map
+    
+        for (let i = 0; i < numBuckets; i++) {
+            const bucketKey = crypto.createHash('md5').update(`${i}_${hashValue}`).digest('hex').substring(0, 8);
+            const bucketData = lshBuckets.get(bucketKey); // 버킷 데이터 가져오기
+            console.log(`Bucket Key: ${bucketKey}`);
+            console.log(`Bucket Data:`, bucketData);
+            
+            if (bucketData) {
+                // 버킷 내 데이터를 순회하며 유사도 검사
+                bucketData.forEach(item => {
+                    const distance = calculateHammingDistance(item.hashValue, hashValue);
+                    if (distance <= maxDistance && !resultsMap.has(item.itemId)) {
+                        resultsMap.set(item.itemId, { ...item, hammingDistance: distance });
+                    }
+                });
+            }
+        }
+    
+        // 유사도(Hamming Distance) 기준으로 정렬 후 반환
+        return Array.from(resultsMap.values()).sort((a, b) => a.hammingDistance - b.hammingDistance);
+    },  
+
 
     // 해시 값을 기반으로 LSH 버킷에 데이터 추가
     addToLSH(itemId, hashValue) {
