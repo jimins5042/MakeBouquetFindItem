@@ -8,8 +8,6 @@ const LSH = require('./service/LSH');
 
 const port = 8000;
 
-
-
 app.set('views', path.join(__dirname, 'views')); // views 폴더 경로 설정
 app.set('view engine', 'ejs'); // EJS를 기본 템플릿 엔진으로 설정
 app.use('/public', express.static('public'));

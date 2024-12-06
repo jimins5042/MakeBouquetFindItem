@@ -29,26 +29,29 @@ CREATE TABLE image_color_tag (
 );
 */
 
-module.exports = {
-    selectAllImageHash() {
-        return new Promise((resolve, reject) => {
 
-            let sql = 'select image_uuid, image_hash_code from image_info'
-            db.query(
-                sql, (err, results) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    resolve(results); // 쿼리 결과를 resolve로 전달
-                });
-        });
-    },
-
-    selectItemList(items) {
-        return new Promise((resolve, reject) => {
+module.exports = { selectAllImageHash, selectItemList }
 
 
-            const sql = `
+function selectAllImageHash() {
+    return new Promise((resolve, reject) => {
+
+        let sql = 'select image_uuid, image_hash_code from image_info'
+        db.query(
+            sql, (err, results) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(results); // 쿼리 결과를 resolve로 전달
+            });
+    });
+}
+
+function selectItemList(items) {
+    return new Promise((resolve, reject) => {
+
+
+        const sql = `
             SELECT 
                 s.item_id, s.item_title, s.item_price, i.image_url ,i.image_hash_code
             FROM 
@@ -60,21 +63,21 @@ module.exports = {
             where 
                 i.image_uuid in (${items.join(',')});
             `
-            console.log("sql", sql)
-            db.query(
-                sql, (err, results) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    console.log("SQL Results:", results);
-                    resolve(results); // 쿼리 결과를 resolve로 전달
-                });
+        console.log("sql", sql)
+        db.query(
+            sql, (err, results) => {
+                if (err) {
+                    return reject(err);
+                }
+                console.log("SQL Results:", results);
+                resolve(results); // 쿼리 결과를 resolve로 전달
+            });
 
-        });
+    });
 
-    }
-    /*
-        const ids = [1, 2, 3]; // 원하는 id 리스트
-        
-    */
-};
+}
+/*
+    const ids = [1, 2, 3]; // 원하는 id 리스트
+    
+*/
+
