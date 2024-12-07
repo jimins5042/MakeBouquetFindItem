@@ -7,8 +7,8 @@ const SearchMapper = require('../db/shop/SearchImageMapper');
 // LSH 버킷 저장소
 const lshBuckets = new Map();
 
-//버킷 수
-const numBuckets = 30;
+// 버킷 수
+let numBuckets = 30; // 기본값
 
 // Hamming Distance 계산
 function calculateHammingDistance(hash1, hash2) {
@@ -16,24 +16,26 @@ function calculateHammingDistance(hash1, hash2) {
     for (let i = 0; i < hash1.length; i++) {
         if (hash1[i] !== hash2[i]) distance++;
     }
-    return distance;
+    
+    return 1 - distance / hexToBinary(hash1).length;
+    //return distance;
 }
 
-// SimHash 계산
-function calculateSimHash(data) {
-    const vector = Array(128).fill(0);
-    const tokens = data.split(' '); // 데이터를 공백 기준으로 나눔
+function hexToBinary(hex) {
+    return [...hex].map(char => parseInt(char, 16).toString(2).padStart(4, '0')).join('');
+}
 
-    tokens.forEach(token => {
-        const hash = crypto.createHash('md5').update(token).digest('hex');
-        const binaryHash = BigInt(`0x${hash}`).toString(2).padStart(128, '0');
-
-        for (let i = 0; i < 128; i++) {
-            vector[i] += binaryHash[i] === '1' ? 1 : -1;
-        }
+function printBucketDistribution() {
+    lshBuckets.forEach((data, bucketKey) => {
+        console.log(`Bucket ${bucketKey} contains ${data.length} items`);
     });
+}
 
-    return vector.map(v => (v > 0 ? '1' : '0')).join('');
+function generateBucketKey(hashValue, bucketIndex) {
+    const hashSegments = hashValue.match(/.{1,4}/g); // 해시 값을 4자리씩 분할
+    const segmentIndex = bucketIndex % hashSegments.length;
+    return `${bucketIndex}_${hashSegments[segmentIndex]}`; // 고유 키 생성
+    //return `${hashSegments[segmentIndex]}`; // 고유 키 생성
 }
 
 module.exports = {
@@ -41,21 +43,23 @@ module.exports = {
     async initializeLSH() {
         console.log("LSH 초기화 시작...");
         const items = await SearchMapper.selectAllImageHash(); // DB에서 데이터 가져오기
-        items.forEach(item => addToLSH(item.image_uuid, item.image_hash_code)); // 데이터 추가
+        numBuckets = Math.min(256, Math.ceil(items.length / 10)); // 버킷 수 동적 설정
+        items.forEach(item => this.addToLSH(item.image_uuid, item.image_hash_code)); // 데이터 추가
         console.log("LSH 초기화 완료!");
+        //printBucketDistribution();
     },
 
-
-    // LSH 검색 2.0 - Set 자료형을 이용하여 탐색값에서 중복 제거
+    // LSH 검색
     async searchLSH(hashValue) {
-        const hashValue = calculateSimHash(hashValue); // 입력 데이터를 SimHash로 변환
         let resultsMap = new Map();
-        for (let i = 0; i < numBuckets; i++) {
-            const bucketKey = crypto.createHash('md5').update(`${i}_${hashValue}`).digest('hex').substring(0, 8);
-            if (lshBuckets.has(bucketKey)) {
 
+        for (let i = 0; i < numBuckets; i++) {
+            const bucketKey = generateBucketKey(hashValue, i); // 개선된 버킷 키 생성 방식
+
+            if (lshBuckets.has(bucketKey)) {
                 lshBuckets.get(bucketKey).forEach(item => {
                     if (!resultsMap.has(item.itemId)) {
+                        console.log("Matching Bucket Data:", lshBuckets.get(bucketKey));
                         resultsMap.set(item.itemId, item);
                     }
                 });
@@ -66,29 +70,30 @@ module.exports = {
         // Hamming Distance 계산
         const candidates = uniqueResults.map(item => ({
             ...item,
-            hammingDistance: calculateHammingDistance(item.hashValue, hashValue)
+            similarity: calculateHammingDistance(item.hashValue, hashValue)
         }));
 
-        // 거리 기준으로 정렬 후 상위 10개 반환
-        //return candidates.sort((a, b) => a.hammingDistance - b.hammingDistance).slice(0, 10);
-        return candidates.sort((a, b) => a.hammingDistance - b.hammingDistance);
+        // 거리 기준으로 정렬 후 반환
+        return candidates;
     },
 
     // LSH 버킷에 데이터 추가
-    addToLSH(itemId, data) {
-        const hashValue = calculateSimHash(data);
+    addToLSH(itemId, hashValue) {
         for (let i = 0; i < numBuckets; i++) {
-            const bucketKey = crypto.createHash('md5').update(`${i}_${hashValue}`).digest('hex').substring(0, 8);
+            const bucketKey = generateBucketKey(hashValue, i); // 개선된 버킷 키 생성 방식
             if (!lshBuckets.has(bucketKey)) {
                 lshBuckets.set(bucketKey, []);
             }
-            lshBuckets.get(bucketKey).push({ itemId, hashValue });
+            // 중복 데이터 확인 후 추가
+            if (!lshBuckets.get(bucketKey).some(item => item.itemId === itemId)) {
+                lshBuckets.get(bucketKey).push({ itemId, hashValue });
+            }
         }
     },
 
     removeFromLSH(itemId, hashValue) {
         for (let i = 0; i < numBuckets; i++) {
-            const bucketKey = crypto.createHash('md5').update(`${i}_${hashValue}`).digest('hex').substring(0, 8);
+            const bucketKey = generateBucketKey(hashValue, i); // 개선된 버킷 키 생성 방식
             if (lshBuckets.has(bucketKey)) {
                 const bucket = lshBuckets.get(bucketKey);
                 const index = bucket.findIndex(item => item.itemId === itemId);
@@ -101,5 +106,4 @@ module.exports = {
             }
         }
     }
-
 };

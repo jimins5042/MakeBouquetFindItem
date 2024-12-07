@@ -110,9 +110,9 @@
                         <input type="file" id="fileInput" accept="image/*" style="display:none" />
 
                         <!-- 해시 계산 버튼 -->
-                        <button type="button" class="btn btn-danger" onclick="submitForm('/search/upload/phashV1')">기본
+                        <button type="button" class="btn btn-danger" onclick="submitForm('/search/upload/phash/V1')">기본
                             phash + 완전 탐색</button>
-                        <button type="button" class="btn btn-warning" onclick="submitForm('/search/upload/phashV2')">개선된
+                        <button type="button" class="btn btn-warning" onclick="submitForm('/search/upload/phash/V2')">개선된
                             phash + 완전 탐색</button>
                         <button type="button" class="btn btn-success" onclick="submitForm('/search/upload/lsh')">개선된
                             pHash + LSH</button>
@@ -267,7 +267,7 @@
                             <div class="card-body p-4">
                                 <div class="text-center">
                                     <h5 class="fw-bolder">${item.item_title}</h5>
-                                    <span>${item.item_price} 원</span>
+                                    <span>${item.item_price} 원</span> <br>
                                     <span>유사도 : ${item.similarity}</span>
                                 </div>
                             </div>
