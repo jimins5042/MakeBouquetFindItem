@@ -297,8 +297,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const uploadBtn = document.getElementById('uploadBtn');
     uploadBtn.addEventListener('click', sendImageToServer);
 
-}
-)
-    ;
+});
 
 

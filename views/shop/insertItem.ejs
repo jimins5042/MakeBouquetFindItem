@@ -71,10 +71,6 @@
                         img.src = e.target.result;
                         img.onload = () => {
                             const palette = colorThief.getPalette(img, 5); // 5가지 색상 추출
-                            //const hexColors = palette.map(color => rgbToHex(color)); // 색상들을 HEX로 변환
-
-                            // 숨겨진 입력 필드에 색상 데이터를 저장
-                            //document.getElementById("palette").value = JSON.stringify(hexColors);
                             document.getElementById("palette").value = JSON.stringify(palette);
                             console.log("추출된 색상:", palette);
                         };
