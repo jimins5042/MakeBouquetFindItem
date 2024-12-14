@@ -69,7 +69,7 @@ function selectItemList(items) {
                 if (err) {
                     return reject(err);
                 }
-                console.log("SQL Results:", results);
+                
                 resolve(results); // 쿼리 결과를 resolve로 전달
             });
 

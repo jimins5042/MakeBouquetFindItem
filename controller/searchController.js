@@ -5,7 +5,7 @@ const lsh = require('../service/LSH');
 const SearchImageMapper = require('../db/shop/SearchImageMapper');
 require('dotenv').config();
 
-module.exports = { searchView, searchImgLogic, uploadImageBF, uploadImageLSH}
+module.exports = { searchView, searchImgLogic, uploadImageBF, uploadImageLSH }
 
 
 
@@ -139,26 +139,29 @@ async function uploadImageLSH(req, res) {
 
     try {
         const rgb = JSON.parse(req.body.rgb);
-        console.log("받은 색:", rgb);
-
         const nearestColor = await analyzImgInfoService.getNearestColor(rgb);
-        console.log("색 분류:", nearestColor);
-
         const hashValue = await analyzImgInfoService.phash(req.file.buffer, 0);
-        console.log("phash:", hashValue);
-
         const img_url = `/virtual/image/${Date.now()}.png`;
-        console.log("Generated virtual file path:", img_url);
+
+        console.log(
+            "받은 색: ", rgb, 
+            "\n색 분류:", nearestColor, 
+            "\nphash:", hashValue, 
+            "\nGenerated virtual file path:", img_url)
+
 
         const items = await lsh.searchLSH(hashValue); // 유사한 항목 검색
         let arr = [];
 
-        console.log("items : ", items);
+        // similarity 값 기준으로 정렬하여 상위 10개만 선택
+        items.sort((a, b) => b.similarity - a.similarity);
+        const item_sort = items.slice(0, 10);
 
         // 완전 탐색으로 유사도가 높은 데이터 탐색
-        for (let i = 0; i < items.length; i++) {
-            arr.push(`'${items[i].itemId}'`);
+        for (let i = 0; i < item_sort.length; i++) {
+            arr.push(`'${item_sort[i].itemId}'`);
         }
+
 
         let imageCandidates = await SearchImageMapper.selectItemList(arr);
 
@@ -167,7 +170,7 @@ async function uploadImageLSH(req, res) {
             imageCandidates = [imageCandidates];
         }
 
-        console.log("console.log(imageCandidates); : ", imageCandidates);
+        console.log("imageCandidates : ", imageCandidates);
 
         // 유사도 값을 추가
         imageCandidates.forEach(candidate => {
