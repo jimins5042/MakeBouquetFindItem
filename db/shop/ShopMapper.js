@@ -38,7 +38,7 @@ module.exports = {
 function selectAll(page, n) {
     return new Promise((resolve, reject) => {
         db.query(
-            `SELECT item_id, item_title, item_date FROM shop_board limit ${(page - 1) * n} , ${n};`, (err, results) => {
+            `SELECT item_id, item_title, item_date FROM shop_board order by item_id desc limit ${(page - 1) * n} , ${n};`, (err, results) => {
                 if (err) {
                     return reject(err);
                 }
