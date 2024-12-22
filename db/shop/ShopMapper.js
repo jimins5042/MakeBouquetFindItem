@@ -147,9 +147,9 @@ function insertImageInfo(data) {
     return new Promise((resolve, reject) => {
         let sql =
             `INSERT INTO 
-                image_info (image_uuid, image_original_name, image_url, image_hash_code, image_color_group) 
+                image_info (image_uuid, image_original_name, image_url, image_hash_code) 
                 VALUES 
-                ('${data.imageUuid}', '${data.imageOriginalName}', '${data.imageUrl}', '${data.imageHashCode}', ${data.imageColorGroup})`
+                ('${data.imageUuid}', '${data.imageOriginalName}', '${data.imageUrl}', '${data.imageHashCode}')`
 
         db.query(
             sql, (err, results) => {
@@ -183,26 +183,25 @@ function insertColorTag(uuid, tag) {
 
 function deleteItem(item_id) {
     return new Promise((resolve, reject) => {
-        let sql =
-            `'DELETE s, i, c
-                    FROM shop_board AS s
-                LEFT JOIN image_info AS i 
-                    ON s.item_image_link = i.image_uuid
-                LEFT JOIN image_color_tag AS c 
-                    ON s.item_image_link = c.image_color_uuid
-                WHERE 
-                    s.item_id = ${item_id};'`;
-        db.query(
-            sql, (err, results) => {
-                if (err) {
-                    return reject(err);
-                }
-
-                resolve(results); // insert 후 자동으로 생성된 item_id 값 반환
-            });
+        const sql = `
+            DELETE s, i, c
+            FROM shop_board AS s
+            LEFT JOIN image_info AS i 
+                ON s.item_image_link = i.image_uuid
+            LEFT JOIN image_color_tag AS c 
+                ON s.item_image_link = c.image_color_uuid
+            WHERE s.item_id = ?;
+        `;
+        
+        db.query(sql, [item_id], (err, results) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(results); // 삭제 결과 반환
+        });
     });
-
 }
+
 
 function selectHashValue() {
 

@@ -119,11 +119,13 @@ async function insertItem(req, res) {
     const { item_title, item_content, item_price } = req.body;
     let imageUuid = null;
     let img_id;
-    let hashValue = await analyzImgInfoService.phash(`${process.env.cloudfront}${imageUuid}`, 1)
+    let hashValue = null;
 
     if (req.file) {
         imageUuid = req.file.key
         console.log(`${process.env.cloudfront}${imageUuid}`);
+
+        hashValue = await analyzImgInfoService.phash(`${process.env.cloudfront}${imageUuid}`, 1)
 
         let imageData = {
             imageUuid: imageUuid,
@@ -170,11 +172,12 @@ async function insertItem(req, res) {
 }
 
 
-function deleteItem(req, res) {
+async function deleteItem(req, res) {
     let item_id = req.params?.id;
 
+
     ShopMapper.deleteItem(item_id);
-    removeFromLSH(imageUuid, hashValue); //LSH 리스트에서 값을 제거
+//    lsh.removeFromLSH(imageUuid, hashValue); //LSH 리스트에서 값을 제거
     res.redirect(`/shop/itemList`);
 }
 

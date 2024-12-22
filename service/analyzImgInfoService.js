@@ -78,8 +78,9 @@ function calCosineSimilarity(arr1, arr2) {
 
 async function fetchImageBuffer(url) {
     try {
+        console.log("url : ", url)
         const response = await axios.get(url, {
-            responseType: 'arraybuffer', // 이미지를 Buffer 형태로 받아오기
+            responseType: 'arraybuffer' // 이미지를 Buffer 형태로 받아오기
         });
         return Buffer.from(response.data);
     } catch (error) {
@@ -312,6 +313,8 @@ module.exports = {
 
     // pHash 생성 함수
     async phash(imgUrl, isAWS) {
+
+        console.log("imgUrl : ", imgUrl)
 
         if (isAWS == 1) {
             imgUrl = await fetchImageBuffer(imgUrl);
