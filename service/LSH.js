@@ -84,8 +84,8 @@ module.exports = {
             if (lshBuckets.has(bucketKey)) {
                 lshBuckets.get(bucketKey).forEach(item => {
                     if (!resultsMap.has(item.itemId)) {
-                        //console.log("Matching Bucket Data:", lshBuckets.get(bucketKey));
-                        console.log("Matching Bucket Data: ", `${i}_${bucketKey}`);
+                        
+                        //console.log("Matching Bucket Data: ", `${i}_${bucketKey}`);
                         resultsMap.set(item.itemId, item);
                     }
                 });

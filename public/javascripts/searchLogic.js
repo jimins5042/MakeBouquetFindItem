@@ -32,24 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 img.src = e.target.result;
                 img.onload = () => {
                     drawImageOnCanvas(img);
-                    /*
-                                        const palette = colorThief.getPalette(img, 5); // 5가지 색상 추출
-                    
-                                        console.log("파레트 1", palette[0]);
-                    
-                                        // 기존 동그라미 초기화 및 새 동그라미 추가
-                                        const colorDisplay1 = document.getElementById('color-display');
-                                        colorDisplay1.innerHTML = ''; // 이전 동그라미 초기화
-                                        palette.forEach(color => {
-                                            const hexColor = rgbToHex(color);
-                                            const colorCircle = document.createElement('div');
-                                            colorCircle.className = 'color-circle';
-                                            colorCircle.style.backgroundColor = hexColor; // 동그라미 색상 표시
-                                            colorDisplay1.appendChild(colorCircle);
-                                        });
-                    
-                    */
-
                 };
             };
             reader.readAsDataURL(file);
@@ -157,6 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 이미지 업로드 후 미리보기 설정
 
     window.submitForm = function (actionUrl) {
+        console.log("actionUrl : ", actionUrl)
         showHash(actionUrl);
     };
 

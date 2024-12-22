@@ -1,18 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 
+
 <%- include('../fragments/header') %>
 
     <body>
         <!-- Navigation -->
         <%- include('../fragments/bodyHeader') %>
 
+            <!-- Search Bar -->
+            <div class="container mt-4">
+                <form class="d-flex align-items-center">
+                    <!-- Search Input -->
+                    <input class="form-control me-2" type="text" name="query" placeholder="검색어를 입력하세요"
+                        aria-label="Search" style="max-width: 400px;">
+                    <button class="btn btn-outline-dark me-3" type="submit">검색</button>
+
+                    <!-- Image Upload -->
+                    <!--label for="imageUpload" class="btn btn-outline-dark">이미지 업로드</label>
+                    <input id="imageUpload" type="file" name="image" accept="image/*" style="display: none;"
+                        onchange="handleImageUpload('/search/upload/lsh')"-->
+                </form>
+            </div>
+
+
             <!-- Section -->
             <section class="py-5" style="margin-top: -100px;">
+
                 <div class="container px-4 px-lg-5 mt-5">
                     <div class="py-5 text-center">
-                        <h2>계절을 가까이</h2>
-                        <h6>꽃으로 계절을 곁에서 느껴보세요</h6>
+                        <h2>오늘의 추천 상품</h2>
+                        <h6>이미지 검색으로 원하는 상품을 추천 받으세요</h6>
                     </div>
                     <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
                         <!-- EJS loop for products -->
@@ -101,5 +119,5 @@
                 </div>
             </footer>
     </body>
-
+    
 </html>
