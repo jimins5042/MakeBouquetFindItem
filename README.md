@@ -26,9 +26,9 @@
 
 ## 화면 구성
 
-|![특징 추출](https://github.com/user-attachments/assets/cf2dba7f-a9ca-4abd-ae6b-c47312a07bec)|![화면 캡처 2025-01-10 203430](https://github.com/user-attachments/assets/7c99d076-168e-42ca-9db8-ea18e2ccf166)|![화면 캡처 2025-01-10 203536](https://github.com/user-attachments/assets/9dfb330d-23a6-46a5-899f-187869d0877c)|
+|![화면 캡처 2024-12-06 011048](https://github.com/user-attachments/assets/784b5681-99e9-4355-b1d9-e138b6e9c124)|![화면 캡처 2025-01-10 203430](https://github.com/user-attachments/assets/7c99d076-168e-42ca-9db8-ea18e2ccf166)|![화면 캡처 2025-01-10 203536](https://github.com/user-attachments/assets/9dfb330d-23a6-46a5-899f-187869d0877c)|
 |:---:|:---:|:---:|
-|이미지 특징 추출 예시|상품 상세 페이지|이미지 검색 페이지|
+|질의 이미지 입력 페이지|상품 상세 페이지|이미지 검색 페이지|
 
 <br>
 
@@ -95,12 +95,13 @@ LSH을 이용하여 데이터를 분산 저장
 - 유사 이미지 검색 정확도 = 검색 이미지와 동일한 상품 종류의 수 / 선별된 이미지 후보군 수
 - 이미지 검색 속도 = 15번의 측정 결과의 평균값
 
-### 성능 평가 대상 (완전 탐색의 경우, Promise 객체를 사용하여 비동기 처리)
-
+### 성능 평가 대상 
 1. 기본 phash + 완전 탐색 조합
 2. 개선된 phash + 완전 탐색 조합
 3. 개선된 phash + LSH 조합
- 
+
+(완전 탐색의 경우, Promise 객체를 사용하여 비동기 처리)
+
 ### 측정 결과 요약
 ![화면 캡처 2024-12-22 235617](https://github.com/user-attachments/assets/b42ab313-4e99-4cc9-b23a-ea9883e305d7)
 
